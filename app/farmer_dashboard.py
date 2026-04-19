@@ -2,37 +2,18 @@ import streamlit as st
 import pandas as pd
 import pydeck as pdk
 import os
-import sys
-import types
 from datetime import datetime, timedelta
-from packaging.version import Version
-from pyspark.sql import SparkSession
-from delta import configure_spark_with_delta_pip
 from engine import get_live_weather
-
-
-distutils_version = types.ModuleType('distutils.version')
-distutils_version.LooseVersion = Version
-sys.modules['distutils.version'] = distutils_version
+from deltalake import DeltaTable
 
 st.set_page_config(page_title="Ceres Smart Yield", layout="wide")
-
-@st.cache_resource
-def get_spark():
-    builder = SparkSession.builder.appName("Dashboard") \
-        .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
-        .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
-        .config("spark.driver.host", "127.0.0.1") \
-        .config("spark.driver.bindAddress", "127.0.0.1") \
-        .master("local[*]")
-    return configure_spark_with_delta_pip(builder).getOrCreate()
 
 @st.cache_data
 def load_data():
     try:
-        spark = get_spark()
-        df = spark.read.format("delta").load("data/gold/farm_daily_stats")
-        pdf = df.toPandas()
+        
+        dt = DeltaTable("data/gold/farm_daily_stats")
+        pdf = dt.to_pandas()
         pdf['date'] = pd.to_datetime(pdf['date']).dt.date
         pdf['lat'] = pd.to_numeric(pdf['lat'])
         pdf['lon'] = pd.to_numeric(pdf['lon'])
