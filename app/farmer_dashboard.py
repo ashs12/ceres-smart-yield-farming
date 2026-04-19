@@ -11,9 +11,15 @@ st.set_page_config(page_title="Ceres Smart Yield", layout="wide")
 @st.cache_data
 def load_data():
     try:
+        current_file_dir = os.path.dirname(os.path.abspath(__file__))
         
-        dt = DeltaTable("data/gold/farm_daily_stats")
+        root_dir = os.path.dirname(current_file_dir)
+        
+        data_path = os.path.join(root_dir, "data", "gold", "farm_daily_stats")
+        
+        dt = DeltaTable(data_path)
         pdf = dt.to_pandas()
+        
         pdf['date'] = pd.to_datetime(pdf['date']).dt.date
         pdf['lat'] = pd.to_numeric(pdf['lat'])
         pdf['lon'] = pd.to_numeric(pdf['lon'])
