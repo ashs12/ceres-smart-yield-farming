@@ -32,21 +32,29 @@ df_pd = load_data()
 
 
 st.sidebar.header("Explore Data")
+
+# 1. Define the baseline and current date
+baseline_date = datetime(2026, 4, 15).date()
 today = datetime.now().date()
 
 
-date_range = [today + timedelta(days=i) for i in range(-10, 11)]
-selected_date = st.sidebar.select_slider("Select Timeline", options=date_range, value=today)
+start_date = baseline_date - timedelta(days=5) 
+end_date = today + timedelta(days=5)
 
+days_diff = (end_date - start_date).days
+date_range = [start_date + timedelta(days=i) for i in range(days_diff + 1)]
+
+selected_date = st.sidebar.select_slider(
+    "Select Timeline", 
+    options=date_range, 
+    value=baseline_date
+)
 crop_options = ["All"] + sorted(df_pd['label'].unique().tolist()) if not df_pd.empty else ["All"]
 selected_crop = st.sidebar.selectbox("Select Crop", crop_options)
 
-
-selected_date_str = str(selected_date)
 df_filtered = df_pd[df_pd['date'] == selected_date].copy() if not df_pd.empty else pd.DataFrame()
 if selected_crop != "All":
     df_filtered = df_filtered[df_filtered['label'] == selected_crop].copy()
-
 
 st.title(f"🌾 Ceres Analytics: {selected_date}")
 
